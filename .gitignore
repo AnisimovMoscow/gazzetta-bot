@@ -1,0 +1,5 @@
+/vendor
+/runtime
+composer.lock
+config/db.php
+config/params.php
