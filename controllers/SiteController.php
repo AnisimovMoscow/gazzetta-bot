@@ -9,6 +9,6 @@ class SiteController extends Controller
     public function actionHook()
     {
         $update = Yii::$app->request->post();
-        Yii::info(print_r($update, true), 'hook');
+        Yii::info(print_r($update, true), 'send');
     }
 }
