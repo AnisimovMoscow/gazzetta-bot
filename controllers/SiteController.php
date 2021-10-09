@@ -16,6 +16,7 @@ class SiteController extends Controller
         Yii::info(print_r($update, true), 'send');
 
         if (!array_key_exists('message', $update)) {
+            Yii::info('no message', 'send');
             return;
         }
         $message = $update['message'];
@@ -31,7 +32,11 @@ class SiteController extends Controller
                         $this->endTour($update);
                         break;
                 }
+            } else {
+                Yii::info('no text', 'send');
             }
+        } else {
+            Yii::info('not group', 'send');
         }
     }
 
@@ -61,7 +66,7 @@ class SiteController extends Controller
         $tour->active = false;
         $tour->ended_at = new Expression('NOW()');
         $tour->save();
-        $this->send('Тур заврщён.', $update['message']['chat']['id']);
+        $this->send('Тур заверщён.', $update['message']['chat']['id']);
     }
 
     private function send($text, $chatId)
