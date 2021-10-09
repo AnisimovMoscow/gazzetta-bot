@@ -30,7 +30,7 @@ return [
                 ],
                 [
                     'class' => 'yii\log\FileTarget',
-                    'levels' => ['info'],
+                    'levels' => ['info', 'error'],
                     'categories' => ['send'],
                     'logFile' => '@runtime/logs/send.log',
                     'logVars' => [],
