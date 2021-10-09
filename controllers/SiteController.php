@@ -14,6 +14,7 @@ class SiteController extends Controller
     const NEW_TOUR_COMMAND = '/newtour@fangazzettabot';
     const END_TOUR_COMMAND = '/endtour@fangazzettabot';
     const APPLICATIONS_COMMAND = '/applications@fangazzettabot';
+    const SELECT_COMMAND = '/select@fangazzettabot';
     const START_COMMAND = '/start';
 
     public function actionHook()
@@ -39,6 +40,9 @@ class SiteController extends Controller
                     case self::APPLICATIONS_COMMAND:
                         $this->getApplications($update);
                         break;
+                    case self::SELECT_COMMAND:
+                        $this->selectApplication($update);
+                        break;
                     }
             }
         } elseif ($chat['type'] === 'private') {
@@ -54,7 +58,7 @@ class SiteController extends Controller
     {
         $tour = Tour::findOne(['active' => true]);
         if ($tour !== null) {
-            $this->send('Уже идёт текущий тур. Если вы хотите остановить, отправьте ' . self::END_TOUR_COMMAND, $update['message']['chat']['id']);
+            $this->send('Уже идёт приём заявок. Если вы хотите остановить, отправьте ' . self::END_TOUR_COMMAND, $update['message']['chat']['id']);
             return;
         }
 
@@ -62,21 +66,21 @@ class SiteController extends Controller
             'active' => true,
         ]);
         $tour->save();
-        $this->send('Запущен тур. Чтоб его остановить, отправьте ' . self::END_TOUR_COMMAND, $update['message']['chat']['id']);
+        $this->send('Запущен приём заявок. Чтоб его остановить, отправьте ' . self::END_TOUR_COMMAND, $update['message']['chat']['id']);
     }
 
     private function endTour($update)
     {
         $tour = Tour::findOne(['active' => true]);
         if ($tour === null) {
-            $this->send('Сейчас нет тура. Если вы хотите запустить, отправьте ' . self::NEW_TOUR_COMMAND, $update['message']['chat']['id']);
+            $this->send('Сейчас закрыт приём заявок. Если вы хотите открыть, отправьте ' . self::NEW_TOUR_COMMAND, $update['message']['chat']['id']);
             return;
         }
 
         $tour->active = false;
         $tour->ended_at = new Expression('NOW()');
         $tour->save();
-        $this->send('Тур заверщён.', $update['message']['chat']['id']);
+        $this->send('Приём заявок завершён. Чтоб выбрать участника, отправьте ' . self::SELECT_COMMAND, $update['message']['chat']['id']);
     }
 
     private function getApplications($update)
@@ -85,14 +89,14 @@ class SiteController extends Controller
         if ($tour === null) {
             $tour = Tour::find()->orderBy('started_at DESC')->one();
             if ($tour === null) {
-                $this->send('Не было ни одного тура. Если вы хотите запустить, отправьте ' . self::NEW_TOUR_COMMAND, $update['message']['chat']['id']);
+                $this->send('Приём заявок не открывался. Если вы хотите открыть, отправьте ' . self::NEW_TOUR_COMMAND, $update['message']['chat']['id']);
                 return;
             }
         }
 
         $applications = Application::findAll(['tour_id' => $tour->id]);
         if (count($applications) === 0) {
-            $this->send('Нет ни одной заявки в этом туре.', $update['message']['chat']['id']);
+            $this->send('Нет ни одной заявки.', $update['message']['chat']['id']);
             return;
         }
 
@@ -104,14 +108,56 @@ class SiteController extends Controller
             }
             $name = trim($name);
 
-            $list .= "{($i + 1)}. {$name}";
+            $n = $i + 1;
+            $list .= "{$n}. {$name}";
             if ($application->selected) {
                 $list .= ' - выбран';
             }
             $list .= "\n";
         }
 
-        $this->send("Заявки пользователей:\n{$list}", $update['message']['chat']['id']);
+        $this->send("Заявки пользователей:\n{$list}\nЕсли хотите выбрать, отправьте " . self::SELECT_COMMAND, $update['message']['chat']['id']);
+    }
+
+    private function selectApplication($update)
+    {
+        $tour = Tour::findOne(['active' => true]);
+        if ($tour !== null) {
+            $this->send('Открыт приём заявок. Необходимо сначала закрыть приём заявок ' . self::END_TOUR_COMMAND, $update['message']['chat']['id']);
+            return;
+        }
+
+        $tour = Tour::find()->orderBy('started_at DESC')->one();
+        if ($tour === null) {
+            $this->send('Приём заявок не открывался. Если вы хотите открыть, отправьте ' . self::NEW_TOUR_COMMAND, $update['message']['chat']['id']);
+            return;
+        }
+
+        $application = Application::findOne(['tour_id' => $tour->id, 'selected' => true]);
+        if ($application !== null) {
+            $application->selected = false;
+            $application->save();
+        }
+
+        $selected = Application::find()->select('user_id')->where(['selected' => true]);
+        $applications = Application::find()->where(['tour_id' => $tour->id])->andWhere(['not in', 'user_id', $selected])->all();
+        if (count($applications) === 0) {
+            $this->send('Нет ни одной заявки в этом туре или все участники уже ранее выбирались.', $update['message']['chat']['id']);
+            return;
+        }
+
+        $n = array_rand($applications);
+        $application = Application::findOne($applications[$n]['id']);
+        $application->selected = true;
+        $application->save();
+
+        $name = "{$application->first_name} {$application->last_name}";
+        if (!empty($application->username)) {
+            $name .= " @{$application->username}";
+        }
+        $name = trim($name);
+
+        $this->send('Выбран пользователь - ' . $name, $update['message']['chat']['id']);
     }
 
     private function start($update)
