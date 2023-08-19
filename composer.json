@@ -2,12 +2,19 @@
     "require": {
         "yiisoft/yii2": "^2.0",
         "telegram-bot/api": "^2.3",
-        "notamedia/yii2-sentry": "^1.7"
+        "notamedia/yii2-sentry": "^1.7",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "repositories": [
         {
             "type": "composer",
             "url": "https://asset-packagist.org"
         }
-    ]
+    ],
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "php-http/discovery": true
+        }
+    }
 }
