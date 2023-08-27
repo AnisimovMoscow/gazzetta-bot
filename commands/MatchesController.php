@@ -140,6 +140,9 @@ class MatchesController extends Controller
                 case 'YELLOW_RED_CARD':
                     self::eventRedCard($event, $statMatch);
                     break;
+                case 'PENALTY_MISSED':
+                    self::eventPenalty($event, $statMatch);
+                    break;
                 case 'MATCH_ENDED':
                     self::eventEnd($statMatch);
                     break;
@@ -196,6 +199,32 @@ class MatchesController extends Controller
         }
 
         $message = "🟥 Удаление {$statMatch->home->team->name} – {$statMatch->away->team->name}\n";
+        $message .= "{$event->value->matchTime}' {$event->value->player->lastName} ";
+
+        if ($event->value->team == 'HOME') {
+            $message .= "({$statMatch->home->team->name})";
+        } else {
+            $message .= "({$statMatch->away->team->name})";
+        }
+
+        self::sendMessage($message);
+        $cache->set($key, true, 24 * 60 * 60);
+    }
+
+    /**
+     * Незабитый пенальти
+     */
+    private static function eventPenalty($event, $statMatch)
+    {
+        $cache = Yii::$app->cache;
+        $key = "event_{$event->id}";
+
+        $send = $cache->get($key);
+        if ($send !== false) {
+            return;
+        }
+
+        $message = "❌ Незабитый пенальти {$statMatch->home->team->name} – {$statMatch->away->team->name}\n";
         $message .= "{$event->value->matchTime}' {$event->value->player->lastName} ";
 
         if ($event->value->team == 'HOME') {

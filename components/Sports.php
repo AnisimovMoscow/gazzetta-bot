@@ -75,7 +75,7 @@ class Sports
                                 lineupStarting
                             }
                         }
-                        events(eventType: [SCORE_CHANGE, RED_CARD, YELLOW_RED_CARD, MATCH_ENDED]) {
+                        events(eventType: [SCORE_CHANGE, RED_CARD, YELLOW_RED_CARD, PENALTY_MISSED, MATCH_ENDED]) {
                             id
                             type
                             value {
@@ -100,6 +100,13 @@ class Sports
                                     team
                                 }
                                 ... on statYellowRedCard {
+                                    matchTime
+                                    player {
+                                        lastName
+                                    }
+                                    team
+                                }
+                                ... on statPenaltyMissed {
                                     matchTime
                                     player {
                                         lastName
