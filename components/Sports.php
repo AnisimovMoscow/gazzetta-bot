@@ -62,6 +62,7 @@ class Sports
                                 }
                                 lineupStarting
                             }
+                            isPreviewLineup
                         }
                         away {
                             team {
@@ -74,6 +75,7 @@ class Sports
                                 }
                                 lineupStarting
                             }
+                            isPreviewLineup
                         }
                         events(eventType: [SCORE_CHANGE, RED_CARD, YELLOW_RED_CARD, PENALTY_MISSED, MATCH_ENDED]) {
                             id

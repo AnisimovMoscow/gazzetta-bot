@@ -92,7 +92,7 @@ class MatchesController extends Controller
             return;
         }
 
-        if (empty($statMatch->home->lineup) || empty($statMatch->away->lineup)) {
+        if (empty($statMatch->home->lineup) || $statMatch->home->isPreviewLineup || empty($statMatch->away->lineup) || $statMatch->away->isPreviewLineup) {
             return;
         }
 
