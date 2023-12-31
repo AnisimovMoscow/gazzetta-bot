@@ -88,7 +88,7 @@ class Sports
                                     goalScorer {
                                         lastName
                                     }
-                                    methodScore
+                                    typeScore
                                     assist {
                                         lastName
                                     }
@@ -98,6 +98,7 @@ class Sports
                                     matchTime
                                     player {
                                         lastName
+                                        name
                                     }
                                     team
                                 }
@@ -105,6 +106,7 @@ class Sports
                                     matchTime
                                     player {
                                         lastName
+                                        name
                                     }
                                     team
                                 }

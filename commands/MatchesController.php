@@ -169,9 +169,9 @@ class MatchesController extends Controller
             $message = "⚽️ {$statMatch->home->team->name} {$statMatch->home->score}:[{$statMatch->away->score}] {$statMatch->away->team->name}\n";
         }
 
-        if ($event->value->methodScore == 'penalty') {
+        if ($event->value->typeScore == 'PENALTY') {
             $message .= "{$event->value->matchTime}' {$event->value->goalScorer->lastName} (п)";
-        } elseif ($event->value->methodScore == 'own_goal') {
+        } elseif ($event->value->typeScore == 'OWN_GOAL') {
             $message .= "{$event->value->matchTime}' {$event->value->goalScorer->lastName} (а)";
         } else {
             if ($event->value->assist === null) {
@@ -198,8 +198,10 @@ class MatchesController extends Controller
             return;
         }
 
+        $name = $event->value->player->lastName ?? $event->value->player->name ?? '';
+
         $message = "🟥 Удаление {$statMatch->home->team->name} – {$statMatch->away->team->name}\n";
-        $message .= "{$event->value->matchTime}' {$event->value->player->lastName} ";
+        $message .= "{$event->value->matchTime}' {$name} ";
 
         if ($event->value->team == 'HOME') {
             $message .= "({$statMatch->home->team->name})";
