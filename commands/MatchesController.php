@@ -13,30 +13,41 @@ use yii\console\ExitCode;
 
 class MatchesController extends Controller
 {
-    const CHAT_ID = '@fangazzettachat';
-    const TOURNAMENT = 'seria_a';
+    const TOURNAMENTS = [
+        'italy' => [
+            'chat_id' => '@fangazzettachat',
+            'sports_id' => 'seria_a',
+        ],
+        'germany' => [
+            'chat_id' => '@fantasybundesligachat',
+            'sports_id' => 'bundesliga',
+        ],
+    ];
 
     /**
      * Обновляет расписание
      */
     public function actionUpdate()
     {
-        $matches = Sports::getMatches(self::TOURNAMENT);
+        foreach (self::TOURNAMENTS as $id => $tournament) {
+            $matches = Sports::getMatches($tournament['sports_id']);
 
-        foreach ($matches as $statMatch) {
-            $match = MatchItem::findOne($statMatch->id);
-            $date = Yii::$app->formatter->asDatetime($statMatch->scheduledAt, 'php:Y-m-d H:i:s');
-            if ($match === null) {
-                $match = new MatchItem([
-                    'id' => $statMatch->id,
-                    'status' => $statMatch->matchStatus,
-                    'started_at' => $date,
-                ]);
-                $match->save();
-            } elseif ($match->status != $statMatch->matchStatus || $match->started_at != $date) {
-                $match->status = $statMatch->matchStatus;
-                $match->started_at = $date;
-                $match->save();
+            foreach ($matches as $statMatch) {
+                $match = MatchItem::findOne($statMatch->id);
+                $date = Yii::$app->formatter->asDatetime($statMatch->scheduledAt, 'php:Y-m-d H:i:s');
+                if ($match === null) {
+                    $match = new MatchItem([
+                        'id' => $statMatch->id,
+                        'status' => $statMatch->matchStatus,
+                        'started_at' => $date,
+                        'tournament' => $id,
+                    ]);
+                    $match->save();
+                } elseif ($match->status != $statMatch->matchStatus || $match->started_at != $date) {
+                    $match->status = $statMatch->matchStatus;
+                    $match->started_at = $date;
+                    $match->save();
+                }
             }
         }
 
@@ -54,10 +65,10 @@ class MatchesController extends Controller
             $statMatch = Sports::getMatch($match->id);
 
             // составы
-            self::checkLineup($statMatch);
+            self::checkLineup($statMatch, $match->tournament);
 
             // события
-            self::checkEvents($statMatch);
+            self::checkEvents($statMatch, $match->tournament);
         }
 
         return ExitCode::OK;
@@ -82,7 +93,7 @@ class MatchesController extends Controller
     /**
      * Проверяет составы
      */
-    private static function checkLineup($statMatch)
+    private static function checkLineup($statMatch, $id)
     {
         $cache = Yii::$app->cache;
         $key = "match_lineup_{$statMatch->id}";
@@ -120,31 +131,31 @@ class MatchesController extends Controller
         $message .= "{$statMatch->home->team->name}: {$home}.\n\n";
         $message .= "{$statMatch->away->team->name}: {$away}.";
 
-        self::sendMessage($message);
+        self::sendMessage($message, $id);
         $cache->set($key, true, 24 * 60 * 60);
     }
 
     /**
      * Проверяет события
      */
-    private static function checkEvents($statMatch)
+    private static function checkEvents($statMatch, $id)
     {
         foreach ($statMatch->events as $event) {
             switch ($event->type) {
                 case 'SCORE_CHANGE':
-                    self::eventGoal($event, $statMatch);
+                    self::eventGoal($event, $statMatch, $id);
                     break;
                 case 'RED_CARD':
-                    self::eventRedCard($event, $statMatch);
+                    self::eventRedCard($event, $statMatch, $id);
                     break;
                 case 'YELLOW_RED_CARD':
-                    self::eventRedCard($event, $statMatch);
+                    self::eventRedCard($event, $statMatch, $id);
                     break;
                 case 'PENALTY_MISSED':
-                    self::eventPenalty($event, $statMatch);
+                    self::eventPenalty($event, $statMatch, $id);
                     break;
                 case 'MATCH_ENDED':
-                    self::eventEnd($statMatch);
+                    self::eventEnd($statMatch, $id);
                     break;
             }
         }
@@ -153,7 +164,7 @@ class MatchesController extends Controller
     /**
      * Гол
      */
-    private static function eventGoal($event, $statMatch)
+    private static function eventGoal($event, $statMatch, $id)
     {
         $cache = Yii::$app->cache;
         $key = "event_{$event->id}";
@@ -181,14 +192,14 @@ class MatchesController extends Controller
             }
         }
 
-        self::sendMessage($message);
+        self::sendMessage($message, $id);
         $cache->set($key, true, 24 * 60 * 60);
     }
 
     /**
      * Удаление
      */
-    private static function eventRedCard($event, $statMatch)
+    private static function eventRedCard($event, $statMatch, $id)
     {
         $cache = Yii::$app->cache;
         $key = "event_{$event->id}";
@@ -209,14 +220,14 @@ class MatchesController extends Controller
             $message .= "({$statMatch->away->team->name})";
         }
 
-        self::sendMessage($message);
+        self::sendMessage($message, $id);
         $cache->set($key, true, 24 * 60 * 60);
     }
 
     /**
      * Незабитый пенальти
      */
-    private static function eventPenalty($event, $statMatch)
+    private static function eventPenalty($event, $statMatch, $id)
     {
         $cache = Yii::$app->cache;
         $key = "event_{$event->id}";
@@ -235,14 +246,14 @@ class MatchesController extends Controller
             $message .= "({$statMatch->away->team->name})";
         }
 
-        self::sendMessage($message);
+        self::sendMessage($message, $id);
         $cache->set($key, true, 24 * 60 * 60);
     }
 
     /**
      * Конец матча
      */
-    private static function eventEnd($statMatch)
+    private static function eventEnd($statMatch, $id)
     {
         $cache = Yii::$app->cache;
         $key = "match_end_{$statMatch->id}";
@@ -255,20 +266,20 @@ class MatchesController extends Controller
         $message = "⚡️ {$statMatch->home->team->name} {$statMatch->home->score}:{$statMatch->away->score} {$statMatch->away->team->name}\n";
         $message .= "Матч завершён";
 
-        self::sendMessage($message);
+        self::sendMessage($message, $id);
         $cache->set($key, true, 24 * 60 * 60);
     }
 
     /**
      * Отправляет сообщение
      */
-    private static function sendMessage($message)
+    private static function sendMessage($message, $id)
     {
-        $token = Yii::$app->params['token'];
+        $token = Yii::$app->params["token-{$id}"];
         $bot = new BotApi($token);
 
         try {
-            $bot->sendMessage(self::CHAT_ID, $message);
+            $bot->sendMessage(self::TOURNAMENTS[$id]['chat_id'], $message);
         } catch (Exception $e) {
             Yii::error('Send error. Message: ' . $e->getMessage() . ' Code: ' . $e->getCode(), 'send');
         }

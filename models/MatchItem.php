@@ -16,6 +16,7 @@ class MatchItem extends ActiveRecord
             'id' => 'ID',
             'status' => 'Статус',
             'started_at' => 'Время начала',
+            'tournament' => 'Турнир',
         ];
     }
 }
