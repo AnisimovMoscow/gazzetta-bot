@@ -174,6 +174,10 @@ class MatchesController extends Controller
             return;
         }
 
+        if ($event->value->goalScorer === null) {
+            return;
+        }
+
         if ($event->value->team == 'HOME') {
             $message = "⚽️ {$statMatch->home->team->name} [{$statMatch->home->score}]:{$statMatch->away->score} {$statMatch->away->team->name}\n";
         } else {
