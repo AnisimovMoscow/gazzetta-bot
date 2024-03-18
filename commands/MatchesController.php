@@ -140,6 +140,10 @@ class MatchesController extends Controller
      */
     private static function checkEvents($statMatch, $id)
     {
+        if (empty($statMatch->events)) {
+            return;
+        }
+
         foreach ($statMatch->events as $event) {
             switch ($event->type) {
                 case 'SCORE_CHANGE':
