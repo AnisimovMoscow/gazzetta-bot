@@ -183,9 +183,9 @@ class MatchesController extends Controller
         }
 
         if ($event->value->team == 'HOME') {
-            $message = "⚽️ {$statMatch->home->team->name} [{$statMatch->home->score}]:{$statMatch->away->score} {$statMatch->away->team->name}\n";
+            $message = "⚽️ {$statMatch->home->team->name} [{$event->value->homeScore}]:{$event->value->awayScore} {$statMatch->away->team->name}\n";
         } else {
-            $message = "⚽️ {$statMatch->home->team->name} {$statMatch->home->score}:[{$statMatch->away->score}] {$statMatch->away->team->name}\n";
+            $message = "⚽️ {$statMatch->home->team->name} {$event->value->homeScore}:[{$event->value->awayScore}] {$statMatch->away->team->name}\n";
         }
 
         if ($event->value->typeScore == 'PENALTY') {
