@@ -17,6 +17,9 @@ class SiteController extends Controller
     const SELECT_COMMAND = '/select@fangazzettabot';
     const START_COMMAND = '/start';
 
+    public function actionIndex()
+    {}
+
     public function actionHook()
     {
         $update = Yii::$app->request->post();
@@ -43,7 +46,7 @@ class SiteController extends Controller
                     case self::SELECT_COMMAND:
                         $this->selectApplication($update);
                         break;
-                    }
+                }
             }
         } elseif ($chat['type'] === 'private') {
             if (array_key_exists('text', $message) && $message['text'] === self::START_COMMAND) {
