@@ -63,6 +63,9 @@ class MatchesController extends Controller
 
         foreach ($matches as $match) {
             $statMatch = Sports::getMatch($match->id);
+            if ($statMatch === null) {
+                continue;
+            }
 
             // составы
             self::checkLineup($statMatch, $match->tournament);

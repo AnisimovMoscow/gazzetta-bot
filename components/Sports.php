@@ -124,7 +124,7 @@ class Sports
             }
         }");
 
-        return $data->data->statQueries->football->match;
+        return $data->data->statQueries->football->match ?? null;
     }
 
     private static function sendGql($query)
