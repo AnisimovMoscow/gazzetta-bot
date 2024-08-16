@@ -22,6 +22,10 @@ class MatchesController extends Controller
             'chat_id' => '@fantasybundesligachat',
             'sports_id' => 'bundesliga',
         ],
+        'england' => [
+            'chat_id' => -1002191305116,
+            'sports_id' => 'epl',
+        ],
     ];
 
     /**
