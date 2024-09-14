@@ -110,7 +110,7 @@ class MatchesController extends Controller
             return;
         }
 
-        if (empty($statMatch->home->lineup) || $statMatch->home->isPreviewLineup || empty($statMatch->away->lineup) || $statMatch->away->isPreviewLineup) {
+        if ($statMatch->home->isPreviewLineup || $statMatch->away->isPreviewLineup) {
             return;
         }
 
@@ -122,6 +122,9 @@ class MatchesController extends Controller
 
             $home[] = $player->player->lastName;
         }
+        if (count($home) < 11) {
+            return;
+        }
         $home = implode(', ', $home);
 
         $away = [];
@@ -131,6 +134,9 @@ class MatchesController extends Controller
             }
 
             $away[] = $player->player->lastName;
+        }
+        if (count($away) < 11) {
+            return;
         }
         $away = implode(', ', $away);
 
