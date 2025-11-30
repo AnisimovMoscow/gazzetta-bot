@@ -18,10 +18,6 @@ class MatchesController extends Controller
             'chat_id' => '@fangazzettachat',
             'sports_id' => 'seria_a',
         ],
-        'germany' => [
-            'chat_id' => '@fantasybundesligachat',
-            'sports_id' => 'bundesliga',
-        ],
         'england' => [
             'chat_id' => -1002191305116,
             'sports_id' => 'epl',
@@ -157,7 +153,8 @@ class MatchesController extends Controller
             return;
         }
 
-        foreach ($statMatch->events as $event) {
+        $events = array_reverse($statMatch->events);
+        foreach ($events as $event) {
             switch ($event->type) {
                 case 'SCORE_CHANGE':
                     self::eventGoal($event, $statMatch, $id);
