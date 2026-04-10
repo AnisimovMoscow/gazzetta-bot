@@ -294,7 +294,9 @@ class MatchesController extends Controller
     private static function sendMessage($message, $id)
     {
         $token = Yii::$app->params["token-{$id}"];
+        $proxy = Yii::$app->params['proxy'];
         $bot = new BotApi($token);
+        $bot->setProxy($proxy, true);
 
         try {
             $bot->sendMessage(self::TOURNAMENTS[$id]['chat_id'], $message);
