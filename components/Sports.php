@@ -152,6 +152,11 @@ class Sports
                         list {
                             squad {
                                 id
+                                currentTourInfo {
+                                    tour {
+                                        id
+                                    }
+                                }
                                 user {
                                     nick
                                 }
@@ -163,6 +168,39 @@ class Sports
         }");
 
         return $data->data->fantasyQueries->rating->squads->list;
+    }
+
+    /**
+     * Возвращает состав команды
+     *
+     * @param string $squadId ID команды
+     * @param string $tourId ID тура
+     * @return array
+     */
+    public static function getSquad($squadId, $tourId)
+    {
+        $data = self::sendGql("{
+            fantasyQueries {
+                squadTourInfo(input: {
+                    squadID: \"{$squadId}\", 
+                    tourID: \"{$tourId}\"
+                }) {
+                    players {
+                        isCaptain
+                        isStarting
+                        seasonPlayer {
+                            role
+                            statObject {
+                                lastName
+                            }
+                        }
+                        score
+                    }
+                }
+            }
+        }");
+
+        return $data->data->fantasyQueries->squadTourInfo->players;
     }
 
     private static function sendGql($query)

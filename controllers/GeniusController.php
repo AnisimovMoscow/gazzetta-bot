@@ -44,6 +44,8 @@ class GeniusController extends Controller
                     $this->selectUser($chatId);
                 } elseif ($data === self::BUTTON_START) {
                     $this->start($chatId);
+                } elseif (preg_match('/squad_(\d+)_(\d+)/', $data, $matches)) {
+                    $this->viewSquad($chatId, $matches[1], $matches[2]);
                 }
             }
         }
@@ -74,7 +76,7 @@ class GeniusController extends Controller
             foreach ($chunk as $squad) {
                 $row[] = [
                     'text' => $squad->squad->user->nick,
-                    'callback_data' => sprintf('%s_%s', self::BUTTON_SQUAD, $squad->squad->id),
+                    'callback_data' => sprintf('%s_%s_%s', self::BUTTON_SQUAD, $squad->squad->id, $squad->squad->currentTourInfo->tour->id),
                 ];
             }
             $rows[] = $row;
@@ -87,6 +89,44 @@ class GeniusController extends Controller
         ];
         $keyboard = new InlineKeyboardMarkup($rows);
         $this->send($chatId, 'Выберите команду:', $keyboard);
+    }
+
+    private function viewSquad($chatId, $squadId, $tourId)
+    {
+        Yii::info('viewSquad', 'send');
+        $players = Sports::getSquad($squadId, $tourId);
+        $text = '';
+        foreach ($players as $player) {
+            if (!$player->isStarting) {
+                continue;
+            }
+
+            foreach (['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD'] as $role) {
+                if ($player->seasonPlayer->role != $role) {
+                    continue;
+                }
+
+                $text .= $player->seasonPlayer->statObject->lastName . " ";
+
+                if ($player->isCaptain) {
+                    $text .= '(к) ';
+                }
+
+                $text .= ': ';
+                $text .= ($player->score === null) ? '–' : $player->score;
+                $text .= "\n";
+            }
+        }
+
+        $keyboard = new InlineKeyboardMarkup([
+            [
+                [
+                    'text' => 'Назад',
+                    'callback_data' => self::BUTTON_SELECT_USER,
+                ],
+            ],
+        ]);
+        $this->send($chatId, $text, $keyboard);
     }
 
     private function send($chatId, $text, $keyboard = null)
