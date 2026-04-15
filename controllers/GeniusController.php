@@ -116,6 +116,8 @@ class GeniusController extends Controller
                 $text .= ($player->score === null) ? '–' : $player->score;
                 $text .= "\n";
             }
+
+            $text .= "\n";
         }
 
         $keyboard = new InlineKeyboardMarkup([
