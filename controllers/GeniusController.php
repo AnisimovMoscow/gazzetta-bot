@@ -97,12 +97,11 @@ class GeniusController extends Controller
         $players = Sports::getSquad($squadId, $tourId);
         $text = '';
         foreach (['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD'] as $role) {
-            if ($player->seasonPlayer->role != $role) {
-                continue;
-            }
-
             foreach ($players as $player) {
                 if (!$player->isStarting) {
+                    continue;
+                }
+                if ($player->seasonPlayer->role != $role) {
                     continue;
                 }
 
