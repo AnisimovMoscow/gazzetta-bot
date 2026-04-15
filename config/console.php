@@ -24,12 +24,6 @@ return [
                     'logFile' => '@runtime/logs/send.log',
                     'logVars' => [],
                 ],
-                [
-                    'class' => 'notamedia\sentry\SentryTarget',
-                    'dsn' => 'https://235d40192d42466a8f5fbc6758e374d8@o102782.ingest.sentry.io/5999662',
-                    'levels' => ['error', 'warning'],
-                    'context' => true,
-                ],
             ],
         ],
         'db' => require(__DIR__ . '/db.php'),
