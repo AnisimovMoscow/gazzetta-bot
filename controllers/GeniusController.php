@@ -23,7 +23,8 @@ class GeniusController extends Controller
         $update = Yii::$app->request->post();
         Yii::info(print_r($update, true), 'send');
 
-        if (!array_key_exists('message', $update)) {
+        if (!array_key_exists('message', $update) && !array_key_exists('callback_query', $update)) {
+            Yii::info('not message', 'send');
             return;
         }
 
