@@ -96,13 +96,13 @@ class GeniusController extends Controller
         Yii::info('viewSquad', 'send');
         $players = Sports::getSquad($squadId, $tourId);
         $text = '';
-        foreach ($players as $player) {
-            if (!$player->isStarting) {
+        foreach (['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD'] as $role) {
+            if ($player->seasonPlayer->role != $role) {
                 continue;
             }
 
-            foreach (['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD'] as $role) {
-                if ($player->seasonPlayer->role != $role) {
+            foreach ($players as $player) {
+                if (!$player->isStarting) {
                     continue;
                 }
 
