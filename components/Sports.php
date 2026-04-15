@@ -187,6 +187,7 @@ class Sports
                 }) {
                     players {
                         isCaptain
+                        isViceCaptain
                         isStarting
                         seasonPlayer {
                             role

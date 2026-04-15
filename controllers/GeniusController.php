@@ -15,6 +15,7 @@ class GeniusController extends Controller
     const BUTTON_SELECT_USER = 'select_user';
     const BUTTON_START = 'start';
     const BUTTON_SQUAD = 'squad';
+    const BUTTON_CAPTAINS = 'captains';
 
     const LEAGUE = 37741;
     const SEASON = 72;
@@ -44,7 +45,9 @@ class GeniusController extends Controller
                     $this->selectUser($chatId);
                 } elseif ($data === self::BUTTON_START) {
                     $this->start($chatId);
-                } elseif (preg_match('/squad_(\d+)_(\d+)/', $data, $matches)) {
+                } elseif ($data === self::BUTTON_CAPTAINS) {
+                    $this->viewCaptains($chatId);
+                } elseif (preg_match('/' . self::BUTTON_SQUAD . '_(\d+)_(\d+)/', $data, $matches)) {
                     $this->viewSquad($chatId, $matches[1], $matches[2]);
                 }
             }
@@ -59,6 +62,10 @@ class GeniusController extends Controller
                 [
                     'text' => 'Посмотреть состав',
                     'callback_data' => self::BUTTON_SELECT_USER,
+                ],
+                [
+                    'text' => 'Капитаны',
+                    'callback_data' => self::BUTTON_CAPTAINS,
                 ],
             ],
         ]);
@@ -124,6 +131,38 @@ class GeniusController extends Controller
                 [
                     'text' => 'Назад',
                     'callback_data' => self::BUTTON_SELECT_USER,
+                ],
+            ],
+        ]);
+        $this->send($chatId, $text, $keyboard);
+    }
+
+    private function viewCaptains($chatId)
+    {
+        Yii::info('viewCaptains', 'send');
+        $text = "Капитаны:\n\n";
+        $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
+        foreach ($squads as $squad) {
+            $text .= $squad->squad->user->nick . ': ';
+            $players = Sports::getSquad($squad->squad->id, $squad->squad->currentTourInfo->tour->id);
+            $cap = '';
+            $viceCap = '';
+            foreach ($players as $player) {
+                if ($player->isCaptain) {
+                    $cap = $player->seasonPlayer->statObject->lastName;
+                }
+                if ($player->isViceCaptain) {
+                    $viceCap = $player->seasonPlayer->statObject->lastName;
+                }
+            }
+            $text .= "{$cap} ({$viceCap})\n";
+        }
+
+        $keyboard = new InlineKeyboardMarkup([
+            [
+                [
+                    'text' => 'Назад',
+                    'callback_data' => self::BUTTON_START,
                 ],
             ],
         ]);
