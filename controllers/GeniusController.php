@@ -27,7 +27,7 @@ class GeniusController extends Controller
             return;
         }
 
-        $message = $update['message'];
+        $message = $update['message'] ?? $update['callback_query']['message'];
         $chat = $message['chat'];
         $chatId = $chat['id'];
 
@@ -36,10 +36,11 @@ class GeniusController extends Controller
                 $this->start($chatId);
             }
 
-            if (array_key_exists('data', $update)) {
-                if ($update['data'] === self::BUTTON_SELECT_USER) {
+            if (array_key_exists('callback_query', $update) && array_key_exists('data', $update['callback_query'])) {
+                $data = $update['callback_query']['data'];
+                if ($data === self::BUTTON_SELECT_USER) {
                     $this->selectUser($chatId);
-                } elseif ($update['data'] === self::BUTTON_START) {
+                } elseif ($data === self::BUTTON_START) {
                     $this->start($chatId);
                 }
             }
