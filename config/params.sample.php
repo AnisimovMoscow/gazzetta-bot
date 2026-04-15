@@ -5,4 +5,5 @@ return [
     'group' => -12345,
     'token-italy' => '12345678:ABCDEFGHJKLMNOPQRSTUVWXYZ',
     'token-germany' => '12345678:ABCDEFGHJKLMNOPQRSTUVWXYZ',
+    'token-genius' => '12345678:ABCDEFGHJKLMNOPQRSTUVWXYZ',
 ];
