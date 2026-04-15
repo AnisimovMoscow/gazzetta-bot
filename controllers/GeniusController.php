@@ -141,6 +141,7 @@ class GeniusController extends Controller
     {
         Yii::info('viewCaptains', 'send');
         $text = "Капитаны:\n\n";
+        $count = [];
         $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
         foreach ($squads as $squad) {
             $text .= $squad->squad->user->nick . ': ';
@@ -155,7 +156,49 @@ class GeniusController extends Controller
                     $viceCap = $player->seasonPlayer->statObject->lastName;
                 }
             }
-            $text .= "{$cap} ({$viceCap})\n";
+            $text .= "{$cap} ({$viceCap})\n\n";
+
+            if (!array_key_exists($cap, $count)) {
+                $count[$cap] = [
+                    'cap' => 1,
+                    'viceCap' => 0, 
+                ];
+            } else {
+                $count[$cap]['cap']++;
+            }
+
+            if (!array_key_exists($viceCap, $count)) {
+                $count[$viceCap] = [
+                    'cap' => 0,
+                    'viceCap' => 1, 
+                ];
+            } else {
+                $count[$viceCap]['viceCap']++;
+            }
+        }
+
+        uasort ($count, function ($a, $b) {
+            if ($a['cap'] > $b['cap']) {
+                return 1;
+            }
+
+            if ($a['cap'] < $b['cap']) {
+                return -1;
+            }
+
+            if ($a['viceCap'] > $b['viceCap']) {
+                return 1;
+            }
+
+            if ($a['viceCap'] < $b['viceCap']) {
+                return -1;
+            }
+
+            return 0;
+        });
+
+        foreach ($count as $name => $value) {
+            $text .= "{$name}: {$value['cap']} + {$value['viceCap']}\n";
         }
 
         $keyboard = new InlineKeyboardMarkup([
