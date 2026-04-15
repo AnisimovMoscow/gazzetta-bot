@@ -14,6 +14,7 @@ class GeniusController extends Controller
 
     const BUTTON_SELECT_USER = 'select_user';
     const BUTTON_START = 'start';
+    const BUTTON_SQUAD = 'squad';
 
     const LEAGUE = 37741;
     const SEASON = 72;
@@ -66,7 +67,6 @@ class GeniusController extends Controller
     {
         Yii::info('selectUser', 'send');
         $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
-        Yii::info(print_r($squads, true), 'send');
         $chunks = array_chunk($squads, 2);
         $rows = [];
         foreach ($chunks as $chunk) {
@@ -74,6 +74,7 @@ class GeniusController extends Controller
             foreach ($chunk as $squad) {
                 $row[] = [
                     'text' => $squad->squad->user->nick,
+                    'callback_data' => sprintf('%s_%s', self::BUTTON_SQUAD, $squad->squad->id),
                 ];
             }
             $rows[] = $row;
