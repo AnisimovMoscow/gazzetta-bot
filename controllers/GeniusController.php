@@ -79,6 +79,8 @@ class GeniusController extends Controller
                 'callback_data' => self::BUTTON_START,
             ],
         ];
+        $keyboard = new InlineKeyboardMarkup($rows);
+        $this->send($chatId, 'Выберите команду:', $keyboard);
     }
 
     private function send($chatId, $text, $keyboard = null)
