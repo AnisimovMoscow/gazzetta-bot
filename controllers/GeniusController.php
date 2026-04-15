@@ -179,26 +179,26 @@ class GeniusController extends Controller
 
         uasort ($count, function ($a, $b) {
             if ($a['cap'] > $b['cap']) {
-                return 1;
+                return -1;
             }
 
             if ($a['cap'] < $b['cap']) {
-                return -1;
-            }
-
-            if ($a['viceCap'] > $b['viceCap']) {
                 return 1;
             }
 
-            if ($a['viceCap'] < $b['viceCap']) {
+            if ($a['viceCap'] > $b['viceCap']) {
                 return -1;
+            }
+
+            if ($a['viceCap'] < $b['viceCap']) {
+                return 1;
             }
 
             return 0;
         });
 
         foreach ($count as $name => $value) {
-            $text .= "{$name}: {$value['cap']} + {$value['viceCap']}\n";
+            $text .= "{$name}: {$value['cap']} ({$value['viceCap']})\n";
         }
 
         $keyboard = new InlineKeyboardMarkup([
