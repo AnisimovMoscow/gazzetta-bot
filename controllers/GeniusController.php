@@ -48,6 +48,7 @@ class GeniusController extends Controller
 
     private function start($chatId)
     {
+        Yii::info('start', 'send');
         $keyboard = new InlineKeyboardMarkup([
             [
                 [
@@ -61,7 +62,9 @@ class GeniusController extends Controller
 
     private function selectUser($chatId)
     {
+        Yii::info('selectUser', 'send');
         $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
+        Yii::info(print_r($squads, true), 'send');
         $chunks = array_chunk($squads, 2);
         $rows = [];
         foreach ($chunks as $chunk) {
