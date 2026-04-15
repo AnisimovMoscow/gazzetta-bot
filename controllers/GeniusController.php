@@ -1,6 +1,7 @@
 <?php
 namespace app\controllers;
 
+use app\components\Sports;
 use Exception;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
@@ -9,7 +10,13 @@ use yii\web\Controller;
 
 class GeniusController extends Controller
 {
-    const START_COMMAND = '/start';
+    const COMMAND_START = '/start';
+
+    const BUTTON_SELECT_USER = 'select_user';
+    const BUTTON_START = 'start';
+
+    const LEAGUE = 37741;
+    const SEASON = 72;
 
     public function actionHook()
     {
@@ -25,8 +32,16 @@ class GeniusController extends Controller
         $chatId = $chat['id'];
 
         if ($chat['type'] === 'private') {
-            if (array_key_exists('text', $message) && $message['text'] === self::START_COMMAND) {
+            if (array_key_exists('text', $message) && $message['text'] === self::COMMAND_START) {
                 $this->start($chatId);
+            }
+
+            if (array_key_exists('data', $update)) {
+                if ($update['data'] === self::BUTTON_SELECT_USER) {
+                    $this->selectUser($chatId);
+                } elseif ($update['data'] === self::BUTTON_START) {
+                    $this->start($chatId);
+                }
             }
         }
     }
@@ -37,11 +52,33 @@ class GeniusController extends Controller
             [
                 [
                     'text' => 'Посмотреть состав',
-                    'callback_data' => 'select_user',
+                    'callback_data' => self::BUTTON_SELECT_USER,
                 ],
             ],
         ]);
-        $this->send($chatId, 'Выберите вариант:', $keyboard);
+        $this->send($chatId, 'Выберите что хотите сделать:', $keyboard);
+    }
+
+    private function selectUser($chatId)
+    {
+        $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
+        $chunks = array_chunk($squads, 2);
+        $rows = [];
+        foreach ($chunks as $chunk) {
+            $row = [];
+            foreach ($chunk as $squad) {
+                $row[] = [
+                    'text' => $squad->squad->user->nick,
+                ];
+            }
+            $rows[] = $row;
+        }
+        $rows[] = [
+            [
+                'text' => 'Назад',
+                'callback_data' => self::BUTTON_START,
+            ],
+        ];
     }
 
     private function send($chatId, $text, $keyboard = null)

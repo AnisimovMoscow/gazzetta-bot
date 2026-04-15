@@ -127,6 +127,44 @@ class Sports
         return $data->data->statQueries->football->match ?? null;
     }
 
+    /**
+     * Возвращает команды лиги
+     *
+     * @param string $seasonId ID сезона
+     * @param string $leagueId ID лиги
+     * @return array
+     */
+    public static function getLeagueSquads($seasonId, $leagueId)
+    {
+        $data = self::sendGql("{
+            fantasyQueries {
+                rating {
+                    squads(
+                        input: {
+                            entityID: \"{$seasonId}\", 
+                            entityType: SEASON, 
+                            sortOrder: DESC, 
+                            leagueID: \"{$leagueId}\", 
+                            pageSize: 100, 
+                            pageNum: 1
+                        }
+                    ) {
+                        list {
+                            squad {
+                                id
+                                user {
+                                    nick
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }");
+
+        return $data->data->fantasyQueries->rating->squads->list;
+    }
+
     private static function sendGql($query)
     {
         $client = self::getClient();
