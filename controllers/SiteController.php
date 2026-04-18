@@ -207,7 +207,9 @@ class SiteController extends Controller
     private function send($text, $chatId)
     {
         $token = Yii::$app->params['token'];
+        $proxy = Yii::$app->params['proxy'];
         $bot = new BotApi($token);
+        $bot->setProxy($proxy, true);
 
         try {
             $bot->sendMessage($chatId, $text);
@@ -219,7 +221,9 @@ class SiteController extends Controller
     private function forward($chatId, $messageId)
     {
         $token = Yii::$app->params['token'];
+        $proxy = Yii::$app->params['proxy'];
         $bot = new BotApi($token);
+        $bot->setProxy($proxy, true);
 
         try {
             $bot->forwardMessage(Yii::$app->params['group'], $chatId, $messageId);

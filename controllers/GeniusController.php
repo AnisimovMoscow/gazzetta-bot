@@ -273,7 +273,9 @@ class GeniusController extends Controller
     private function send($chatId, $text, $keyboard = null)
     {
         $token = Yii::$app->params['token-genius'];
+        $proxy = Yii::$app->params['proxy'];
         $bot = new BotApi($token);
+        $bot->setProxy($proxy, true);
 
         try {
             $bot->sendMessage($chatId, $text, null, false, null, $keyboard);
