@@ -255,6 +255,7 @@ class GeniusController extends Controller
             return 0;
         });
 
+        $count = array_slice($count, 0, 20, true);
         foreach ($count as $name => $value) {
             $text .= "{$name}: {$value}\n";
         }
