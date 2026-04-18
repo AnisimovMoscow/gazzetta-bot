@@ -16,6 +16,7 @@ class GeniusController extends Controller
     const BUTTON_START = 'start';
     const BUTTON_SQUAD = 'squad';
     const BUTTON_CAPTAINS = 'captains';
+    const BUTTON_PLAYERS = 'players';
 
     const LEAGUE = 37741;
     const SEASON = 72;
@@ -47,6 +48,8 @@ class GeniusController extends Controller
                     $this->start($chatId);
                 } elseif ($data === self::BUTTON_CAPTAINS) {
                     $this->viewCaptains($chatId);
+                } elseif ($data === self::BUTTON_PLAYERS) {
+                    $this->viewPlayers($chatId);
                 } elseif (preg_match('/' . self::BUTTON_SQUAD . '_(\d+)_(\d+)/', $data, $matches)) {
                     $this->viewSquad($chatId, $matches[1], $matches[2]);
                 }
@@ -66,6 +69,12 @@ class GeniusController extends Controller
                 [
                     'text' => 'Капитаны',
                     'callback_data' => self::BUTTON_CAPTAINS,
+                ],
+            ],
+            [
+                [
+                    'text' => 'Популярные игроки',
+                    'callback_data' => self::BUTTON_PLAYERS,
                 ],
             ],
         ]);
@@ -101,10 +110,10 @@ class GeniusController extends Controller
     private function viewSquad($chatId, $squadId, $tourId)
     {
         Yii::info('viewSquad', 'send');
-        $players = Sports::getSquad($squadId, $tourId);
-        $text = '';
+        $squad = Sports::getSquad($squadId, $tourId);
+        $text = "{$squad->squad->user->nick}:\n\n";
         foreach (['GOALKEEPER', 'DEFENDER', 'MIDFIELDER', 'FORWARD'] as $role) {
-            foreach ($players as $player) {
+            foreach ($squad->players as $player) {
                 if (!$player->isStarting) {
                     continue;
                 }
@@ -145,10 +154,10 @@ class GeniusController extends Controller
         $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
         foreach ($squads as $squad) {
             $text .= $squad->squad->user->nick . ': ';
-            $players = Sports::getSquad($squad->squad->id, $squad->squad->currentTourInfo->tour->id);
+            $info = Sports::getSquad($squad->squad->id, $squad->squad->currentTourInfo->tour->id);
             $cap = '';
             $viceCap = '';
-            foreach ($players as $player) {
+            foreach ($info->players as $player) {
                 if ($player->isCaptain) {
                     $cap = $player->seasonPlayer->statObject->lastName;
                 }
@@ -199,6 +208,55 @@ class GeniusController extends Controller
 
         foreach ($count as $name => $value) {
             $text .= "{$name}: {$value['cap']} ({$value['viceCap']})\n";
+        }
+
+        $keyboard = new InlineKeyboardMarkup([
+            [
+                [
+                    'text' => 'Назад',
+                    'callback_data' => self::BUTTON_START,
+                ],
+            ],
+        ]);
+        $this->send($chatId, $text, $keyboard);
+    }
+
+    private function viewPlayers($chatId)
+    {
+        Yii::info('viewPlayers', 'send');
+        $text = "Популярные игроки:\n\n";
+        $count = [];
+        $squads = Sports::getLeagueSquads(self::SEASON, self::LEAGUE);
+        foreach ($squads as $squad) {
+            $info = Sports::getSquad($squad->squad->id, $squad->squad->currentTourInfo->tour->id);
+            foreach ($info->players as $player) {
+                if (!$player->isStarting) {
+                    continue;
+                }
+
+                $name = $player->seasonPlayer->statObject->lastName;
+                if (!array_key_exists($name, $count)) {
+                    $count[$name] = 1;
+                } else {
+                    $count[$name]++;
+                }
+            }
+        }
+
+        uasort ($count, function ($a, $b) {
+            if ($a > $b) {
+                return -1;
+            }
+
+            if ($a < $b) {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        foreach ($count as $name => $value) {
+            $text .= "{$name}: {$value}\n";
         }
 
         $keyboard = new InlineKeyboardMarkup([

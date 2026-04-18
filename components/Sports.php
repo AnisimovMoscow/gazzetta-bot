@@ -175,7 +175,7 @@ class Sports
      *
      * @param string $squadId ID команды
      * @param string $tourId ID тура
-     * @return array
+     * @return object
      */
     public static function getSquad($squadId, $tourId)
     {
@@ -185,6 +185,11 @@ class Sports
                     squadID: \"{$squadId}\", 
                     tourID: \"{$tourId}\"
                 }) {
+                    squad {
+                        user {
+                            nick
+                        }
+                    }
                     players {
                         isCaptain
                         isViceCaptain
@@ -201,7 +206,7 @@ class Sports
             }
         }");
 
-        return $data->data->fantasyQueries->squadTourInfo->players;
+        return $data->data->fantasyQueries->squadTourInfo;
     }
 
     private static function sendGql($query)
